@@ -2,6 +2,7 @@
 #include "ui_widget.h"
 #include <QIcon>
 #include <QDebug>
+#include <QPushButton>
 
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
