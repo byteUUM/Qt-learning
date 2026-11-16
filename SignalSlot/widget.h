@@ -26,7 +26,8 @@ private slots:
     void on_pushButton_3_clicked();
 
 signals:
-    void mySignal(const QString& str,const QString& str2);//自定义信号本质就是函数，不用实现，系统会自动帮实现
+    void mySignal(const QString& str,const QString& str2);
+    //自定义信号本质就是函数，不用实现，系统会自动帮实现
 
 private:
     Ui::Widget *ui;
