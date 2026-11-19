@@ -4,5 +4,12 @@
         <file>png/wall.png</file>
         <file>png/bullet.png</file>
         <file>png/bird.png</file>
+        <file>png/missile.png</file>
+        <file>sound/birdSound.mp3</file>
+        <file>sound/bulletSound.mp3</file>
+        <file>sound/missileSound.mp3</file>
+        <file>sound/backGroundSound.mp3</file>
+        <file>sound/blastSound.mp3</file>
+        <file>png/blast.png</file>
     </qresource>
 </RCC>
