@@ -37,7 +37,7 @@ Widget::Widget(QWidget *parent)
     auto *player = new QMediaPlayer(this);// 0.05
     auto *out = new QAudioOutput(this);
     player->setAudioOutput(out);
-    out->setVolume((float)0.05);
+    out->setVolume((float)0.1);
     player->setSource(QUrl("qrc:/sound/backGroundSound.mp3"));
     player->setLoops(QMediaPlayer::Infinite);      // 循环播放
     player->play();
@@ -352,6 +352,7 @@ void Widget::info()
     _bird_speed = 4;
     _missile_speed = 2;
     _count = 0;
+    ui->pushButton_time->setText("time:0");
 }
 
 
