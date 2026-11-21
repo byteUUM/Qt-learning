@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>png/clown.gif</file>
+        <file>sound/block2.mp3</file>
+        <file>sound/block10.mp3</file>
+        <file>sound/clown.mp3</file>
+        <file>png/emesis.png</file>
+    </qresource>
+</RCC>
