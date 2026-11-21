@@ -8,6 +8,7 @@
 #include <QMovie>
 #include <QMediaPlayer>
 #include <QAudioOutput>
+#include <QSoundEffect>
 
 Widget::Widget(QWidget *parent, bool isMainWindow, Widget* root)
     : QWidget(parent)
@@ -28,11 +29,26 @@ Widget::Widget(QWidget *parent, bool isMainWindow, Widget* root)
     if(!isMainWindow) return;
 
     //窗口图像
-    QPixmap pix = QPixmap(":/png/emesis.png");
+    // QPixmap pix = QPixmap(":/png/emesis.png");
+    // QLabel* lb = new QLabel(this);
+    // lb->setGeometry(0,0,this->width(),this->height());
+    // lb->setPixmap(pix);
+    // lb->setScaledContents(true);
+
+    //动图设置
     QLabel* lb = new QLabel(this);
     lb->setGeometry(0,0,this->width(),this->height());
-    lb->setPixmap(pix);
+    auto *movie = new QMovie(":/png/emesis2.gif");
+    movie->setParent(lb);//挂对象树，防止内存泄漏
+    lb->setMovie(movie);
+    movie->start();
     lb->setScaledContents(true);
+    //启动声音
+    QSoundEffect* emesisSound = new QSoundEffect(this);
+    emesisSound->setSource(QUrl("qrc:/sound/emesis.mp3"));
+    emesisSound->setVolume((float)1);
+    emesisSound->play();
+
 
     //窗口生成定时器
     _timer = new QTimer(this);
@@ -64,57 +80,126 @@ Widget::Widget(QWidget *parent, bool isMainWindow, Widget* root)
 
 }
 
+// void Widget::proWindow()
+// {
+//     if(_timePasses<=0) return;
+//     Widget* w = new Widget(nullptr,false,this);
+//     if(_timePasses != _lastTick)
+//     {
+//         _lastTick = _timePasses;
+//         if(_timePasses==1) _clown_player1->play();
+//         if(_timePasses==4) _clown_player2->play();
+//         if(_timePasses==6) _clown_player3->play();
+//         if(_timePasses==10) _timer->setInterval(500);
+//         if(_timePasses==20)
+//         {
+//             _timer->setInterval(200);
+//             _block2_player->play();
+//         }
+//         if(_timePasses>=20&&!_widgets.empty())
+//         {
+//             _widgets.front()->deleteLater();
+//             _widgets.pop_front();
+//         }
+//         if(_timePasses==60)
+//         {
+//             windowClear();
+//             _timer->stop();
+//             w->showFullScreen();
+//             _clown_player1->stop();
+//             _clown_player2->stop();
+//             _clown_player3->stop();
+//             _block10_player->play();
+//             w->setStyleSheet("background-color: blue;");
+//         }
+//     }
+//     else if(_timePasses<60)
+//     {
+//         //窗口生成轨迹
+//         track(w);
+
+//         //窗口图标
+//         QIcon icon = QIcon(":/png/emesis.png");
+//         w->setWindowIcon(icon);
+//         w->setWindowTitle("clown");
+
+//         //动图设置
+//         QLabel* label = new QLabel(w);
+//         label->setGeometry(0,0,_width,_height);
+//         auto *movie = new QMovie(":/png/clown.gif");
+//         movie->setParent(label);//挂对象树，防止内存泄漏
+//         label->setMovie(movie);
+//         movie->start();
+//         label->setScaledContents(true);
+//     }
+
+//     _widgets.push_back(w);
+//     w->show();
+// }
+
+
 void Widget::proWindow()
 {
-    Widget* w = new Widget(nullptr,false,this);
-    if(_timePasses==1) _clown_player1->play();
-    if(_timePasses==4) _clown_player2->play();
-    if(_timePasses==6) _clown_player3->play();
-    if(_timePasses==60)
-    {
-        windowClear();
-        _timer->stop();
-        w->showFullScreen();
-        _clown_player1->stop();
-        _clown_player2->stop();
-        _clown_player3->stop();
-        _block10_player->play();
-        w->setStyleSheet("background-color: blue;");
-    }
-    else
-    {
-        //窗口生成轨迹
-        track2(w);
+    if(_timePasses<=0||_timePasses>65) return;
 
-        //窗口图标
-        QIcon icon = QIcon(":/png/emesis.png");
-        w->setWindowIcon(icon);
-        w->setWindowTitle("clown");
-
-        //动图设置
-        QLabel* label = new QLabel(w);
-        label->setGeometry(0,0,_width,_height);
-        auto *movie = new QMovie(":/png/clown.gif");
-        movie->setParent(label);//挂对象树，防止内存泄漏
-        label->setMovie(movie);
-        movie->start();
-        label->setScaledContents(true);
-
-    }
-    if(_timePasses==10) _timer->setInterval(500);
-    if(_timePasses==20)
+    // 1. 一次性事件（每秒只触发一次）
+    if(_timePasses != _lastTick)
     {
-        _timer->setInterval(200);
-        _block2_player->play();
+        _lastTick = _timePasses;
+        if(_timePasses==1) _clown_player1->play();
+        if(_timePasses==4) _clown_player2->play();
+        if(_timePasses==6) _clown_player3->play();
+        if(_timePasses==10) _timer->setInterval(500);
+        if(_timePasses==20)
+        {
+            _timer->setInterval(200);
+            _block2_player->play();
+        }
+        // 2. 蓝屏：单独处理，处理完直接 return
+        if(_timePasses>=60)//65和>=60是为了防止因为卡顿导致60这个点没触发到
+        {
+            windowClear();
+            _timer->stop();
+            _clown_player1->stop();
+            _clown_player2->stop();
+            _clown_player3->stop();
+            _block10_player->play();
+            Widget* w = new Widget(nullptr,false,this);
+            w->setStyleSheet("background-color: blue;");
+            w->showFullScreen();
+            _widgets.push_back(w);
+            //隐藏鼠标
+            w->setCursor(Qt::BlankCursor);
+            return;
+        }
     }
-    if(_timePasses>=20&&!_widgets.empty())
+
+    // 3. 超过 25 秒后，每生成一个删一个最老的（每次都执行）
+    if(_timePasses>=25 && !_widgets.empty())
     {
-        _widgets.front()->close();
+        if(_widgets.front()) _widgets.front()->deleteLater();
         _widgets.pop_front();
     }
+
+    // 4. 正常生成 clown 窗口（每次都执行）
+    Widget* w = new Widget(nullptr,false,this);
+    //窗口生成轨迹
+    track(w);
+    //窗口图标
+    w->setWindowIcon(QIcon(":/png/emesis.png"));
+    w->setWindowTitle("clown");
+
+    QLabel* label = new QLabel(w);
+    label->setGeometry(0,0,_width,_height);
+    auto *movie = new QMovie(":/png/clown.gif", QByteArray(), label);
+    label->setMovie(movie);
+    label->setScaledContents(true);
+    movie->start();
+
     _widgets.push_back(w);
     w->show();
 }
+
 void Widget::windowClear()
 {
     for(auto x:_widgets)

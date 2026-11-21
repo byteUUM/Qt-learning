@@ -35,7 +35,7 @@ public:
 private:
     QTimer* _timer = nullptr;
     QTimer* _count = nullptr;
-    int _timePasses = 0;
+    int _timePasses = -1;
 
     int _MainW = 0;
     int _MainH = 0;
@@ -44,6 +44,8 @@ private:
     int _height = 300;
 
     std::list<Widget*> _widgets;
+
+    int _lastTick = -1;//防止同一时间重复判定
 
     //声音
     QMediaPlayer *_block2_player = nullptr;

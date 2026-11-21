@@ -162,7 +162,6 @@ void Widget::productBullet()
     this->_bullets.push_back(blt);
 
     _bullet_sound->play();
-
 }
 
 void Widget::moveBullet()
