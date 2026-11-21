@@ -134,13 +134,13 @@ void Widget::backGroundSound(QMediaPlayer*& player, QUrl url, float volume)
     player->setLoops(QMediaPlayer::Infinite);
 }
 
-void Widget::track1(Widget*& w)
-{
-    int x = rand()%(_MainW-(_width/2));
-    int y = rand()%(_MainH-(_height/2));
-    w->setGeometry(x,y,_width,_height);
-}
-void Widget::track2(Widget*& w)
+// void Widget::track(Widget*& w)
+// {
+//     int x = rand()%(_MainW-(_width/2));
+//     int y = rand()%(_MainH-(_height/2));
+//     w->setGeometry(x,y,_width,_height);
+// }
+void Widget::track(Widget*& w)
 {
     // 最远点采样：随机 10 个候选，取离已有窗口最远的
     QPoint best;
@@ -155,88 +155,6 @@ void Widget::track2(Widget*& w)
     }
     w->setGeometry(best.x(), best.y(), _width, _height);
 }
-
-void Widget::track3(Widget*& w)
-{
-    int n = _spawnIdx++;
-    double cx = (_MainW - _width)  / 2.0;   // 窗口左上角的中心基准
-    double cy = (_MainH - _height) / 2.0;
-    double ax = cx, ay = cy;                // 椭圆半轴，铺满屏幕
-    int x, y;
-
-    int ring = 0, cnt = 1, m = n;
-    while (m >= cnt) { m -= cnt; ring++; cnt = 6 * ring; }  // 第 ring 圈 6*ring 个，六边形数
-    double R = ring / 8.0;                                   // 8 圈铺满
-    double theta = cnt > 1 ? 2 * M_PI * m / cnt : 0;
-    x = cx + ax * R * std::cos(theta);
-    y = cy + ay * R * std::sin(theta);
-
-    w->setGeometry(x, y, _width, _height);
-}
-
-
-void Widget::track4(Widget*& w)
-{
-    int n = _spawnIdx++;
-    double cx = (_MainW - _width)  / 2.0;   // 窗口左上角的中心基准
-    double cy = (_MainH - _height) / 2.0;
-    double ax = cx, ay = cy;                // 椭圆半轴，铺满屏幕
-    int x, y;
-
-    double t = n * 0.15;
-    x = cx + ax * std::sin(3 * t + M_PI / 2);
-    y = cy + ay * std::sin(2 * t);
-
-    w->setGeometry(x, y, _width, _height);
-}
-void Widget::track5(Widget*& w)
-{
-    int n = _spawnIdx++;
-    double cx = (_MainW - _width)  / 2.0;   // 窗口左上角的中心基准
-    double cy = (_MainH - _height) / 2.0;
-    double ax = cx, ay = cy;                // 椭圆半轴，铺满屏幕
-    int x, y;
-
-    double t = n * 0.25;
-    double r = (t / 20.0);                  // 每圈半径增长恒定
-    r = std::fmod(r, 1.0);                  // 超出后从中心重新开始
-    x = cx + ax * r * std::cos(t);
-    y = cy + ay * r * std::sin(t);
-
-    w->setGeometry(x, y, _width, _height);
-}
-void Widget::track6(Widget*& w)
-{
-    int n = _spawnIdx++;
-    double cx = (_MainW - _width)  / 2.0;   // 窗口左上角的中心基准
-    double cy = (_MainH - _height) / 2.0;
-    double ax = cx, ay = cy;                // 椭圆半轴，铺满屏幕
-    int x, y;
-
-    double t = n * 0.12;
-    double k = 5;                           // 奇数 k 得 k 瓣，偶数 k 得 2k 瓣
-    double r = std::cos(k * t);
-    x = cx + ax * r * std::cos(t);
-    y = cy + ay * r * std::sin(t);
-
-    w->setGeometry(x, y, _width, _height);
-}
-void Widget::track7(Widget*& w)
-{
-    int n = _spawnIdx++;
-    double cx = (_MainW - _width)  / 2.0;   // 窗口左上角的中心基准
-    double cy = (_MainH - _height) / 2.0;
-    double ax = cx, ay = cy;                // 椭圆半轴，铺满屏幕
-    int x, y;
-
-    double t = n * 0.15;
-    x = cx + ax * std::sin(3 * t + M_PI / 2);
-    y = cy + ay * std::sin(2 * t);
-
-    w->setGeometry(x, y, _width, _height);
-}
-
-
 
 Widget::~Widget()
 {

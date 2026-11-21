@@ -28,13 +28,7 @@ public:
     void backGroundSound(QMediaPlayer*& player, QUrl url, float volume);
 
     //窗口生成轨迹
-    void track1(Widget*& w);
-    void track2(Widget*& w);
-    void track3(Widget*& w);
-    void track4(Widget*& w);
-    void track5(Widget*& w);
-    void track6(Widget*& w);
-    void track7(Widget*& w);
+    void track(Widget*& w);
 
     ~Widget() override;
 
