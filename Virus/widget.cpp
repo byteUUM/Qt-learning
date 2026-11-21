@@ -53,6 +53,8 @@ Widget::Widget(QWidget *parent, bool isMainWindow, Widget* root)
     _timer = new QTimer(this);
     connect(_timer,&QTimer::timeout,this,&Widget::proWindow);
     _timer->start(1000);
+    //窗口背景
+    this->setStyleSheet("background-color: black;");
 
     //计数器,统计过去了多少时间
     _count = new QTimer(this);
@@ -140,6 +142,8 @@ void Widget::proWindow()
     //窗口图标
     w->setWindowIcon(QIcon(":/png/emesis.png"));
     w->setWindowTitle("clown");
+    //窗口背景
+    w->setStyleSheet("background-color: #0f1a14;");//深绿色
 
     QLabel* label = new QLabel(w);
     label->setGeometry(0,0,_width,_height);
