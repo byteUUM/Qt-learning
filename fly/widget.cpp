@@ -319,6 +319,8 @@ void Widget::gameAgain()
     _mover_bullet->setInterval(20);
     _mover_bird->setInterval(20);
     _time->setInterval(1000);
+    _pro_missile->setInterval(INT_MAX);
+    _mover_missile->setInterval(INT_MAX);
 
     _pro_bullet->start();
     _mover_bullet->start();
