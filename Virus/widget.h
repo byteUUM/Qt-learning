@@ -6,6 +6,8 @@
 #include <list>
 #include <QMediaPlayer>
 #include <QAudioOutput>
+#include <QSoundEffect>
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class Widget;
@@ -48,15 +50,23 @@ private:
     int _lastTick = -1;//防止同一时间重复判定
 
     //声音
+    //背景声
     QMediaPlayer *_block2_player = nullptr;
     QMediaPlayer *_block10_player = nullptr;
     QMediaPlayer *_clown_player1 = nullptr;
     QMediaPlayer *_clown_player2 = nullptr;
     QMediaPlayer *_clown_player3 = nullptr;
+    QMediaPlayer *_clown2_player1 = nullptr;
+    //启动声音
+    QSoundEffect* _emesisSound;
 
     int _spawnIdx = 0;
 
     Widget* _root = nullptr;
+
+    //统一解码通一帧
+    //QMovie *_clownMovie = nullptr;
+
 
     Ui::Widget *ui;
 };

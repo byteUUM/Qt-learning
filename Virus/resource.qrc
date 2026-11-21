@@ -7,5 +7,6 @@
         <file>png/emesis.png</file>
         <file>png/emesis2.gif</file>
         <file>sound/emesis.mp3</file>
+        <file>sound/clown2.mp3</file>
     </qresource>
 </RCC>
