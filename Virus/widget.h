@@ -37,6 +37,7 @@ public:
 private:
     QTimer* _timer = nullptr;
     QTimer* _count = nullptr;
+    QTimer* _twinkle = nullptr;
     int _timePasses = -1;
 
     int _MainW = 0;

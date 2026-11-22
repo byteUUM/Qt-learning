@@ -42,6 +42,13 @@ Widget::Widget(QWidget *parent, bool isMainWindow, Widget* root)
     lb->setMovie(movie);
     movie->start();
     lb->setScaledContents(true);
+    //隐藏背景
+    // 1. 窗口：开启透明背景，通常需要配合无边框
+    this->setAttribute(Qt::WA_TranslucentBackground);
+    this->setWindowFlags(Qt::FramelessWindowHint); // 如果不需要窗口边框的话
+    // 2. QLabel（铺满窗口的那个）：禁用系统背景绘制
+    lb->setAttribute(Qt::WA_NoSystemBackground);
+
     //启动声音
     _emesisSound = new QSoundEffect(this);
     _emesisSound->setSource(QUrl("qrc:/sound/emesis.mp3"));
@@ -53,8 +60,6 @@ Widget::Widget(QWidget *parent, bool isMainWindow, Widget* root)
     _timer = new QTimer(this);
     connect(_timer,&QTimer::timeout,this,&Widget::proWindow);
     _timer->start(1000);
-    //窗口背景
-    this->setStyleSheet("background-color: black;");
 
     //计数器,统计过去了多少时间
     _count = new QTimer(this);
@@ -94,7 +99,7 @@ void Widget::proWindow()
         _emesisSound->play();
         return;
     }
-    if(_timePasses>60) return;
+    if(_timePasses>70) return;
     // 1. 一次性事件（每秒只触发一次）
     if(_timePasses != _lastTick)
     {
@@ -109,20 +114,41 @@ void Widget::proWindow()
         if(_timePasses==25) _block2_player->play();
 
         // 2. 蓝屏：单独处理，处理完直接 return
-        if(_timePasses==60)
+        if(_timePasses>=60)
         {
-            windowClear();
+            //windowClear();
             _timer->stop();
-            _clown_player1->stop();
-            _clown_player2->stop();
-            _clown_player3->stop();
+            // _clown_player1->stop();
+            // _clown_player2->stop();
+            // _clown_player3->stop();
             _block10_player->play();
             Widget* w = new Widget(nullptr,false,this);
             w->setStyleSheet("background-color: red;");
             w->showFullScreen();
-            _widgets.push_back(w);
+            //_widgets.push_back(w);
             //隐藏鼠标
             w->setCursor(Qt::BlankCursor);
+
+            _twinkle = new QTimer(this);
+            connect(_twinkle,&QTimer::timeout,this,[w,this](){
+                _twinkle->setInterval(100+rand()%300);
+                if(_timePasses>=70)
+                {
+                    windowClear();
+                    w->show();
+                    _twinkle->stop();
+                    _clown_player1->stop();
+                    _clown_player2->stop();
+                    _clown_player3->stop();
+                    _widgets.push_back(w);
+                }
+                else
+                {
+                    if(w->isHidden()) w->show();
+                    else w->hide();
+                }
+            });
+            _twinkle->start(10);
             return;
         }
     }
@@ -145,12 +171,20 @@ void Widget::proWindow()
     //窗口背景
     w->setStyleSheet("background-color: #0f1a14;");//深绿色
 
+    //设置动图
     QLabel* label = new QLabel(w);
     label->setGeometry(0,0,_width,_height);
     auto *movie = new QMovie(":/png/clown.gif", QByteArray(), label);
     label->setMovie(movie);
     label->setScaledContents(true);
     movie->start();
+
+    // //隐藏背景
+    // // 1. 窗口：开启透明背景，通常需要配合无边框
+    // w->setAttribute(Qt::WA_TranslucentBackground);
+    // w->setWindowFlags(Qt::FramelessWindowHint); // 如果不需要窗口边框的话
+    // // 2. QLabel（铺满窗口的那个）：禁用系统背景绘制
+    // label->setAttribute(Qt::WA_NoSystemBackground);
     // if(_timePasses>20) //非同步
     // {
         // auto *movie = new QMovie(":/png/clown.gif", QByteArray(), label);
@@ -163,7 +197,6 @@ void Widget::proWindow()
     //     label->setMovie(_clownMovie);
     //     label->setScaledContents(true);
     // }
-
     _widgets.push_back(w);
     w->show();
 }
