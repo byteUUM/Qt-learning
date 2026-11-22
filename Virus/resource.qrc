@@ -8,5 +8,7 @@
         <file>png/emesis2.gif</file>
         <file>sound/emesis.mp3</file>
         <file>sound/clown2.mp3</file>
+        <file>sound/noise.mp3</file>
+        <file>png/clown.png</file>
     </qresource>
 </RCC>

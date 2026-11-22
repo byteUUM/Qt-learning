@@ -7,6 +7,9 @@
 #include <QMediaPlayer>
 #include <QAudioOutput>
 #include <QSoundEffect>
+#include <endpointvolume.h>
+
+class MuteGuard;  // 前向声明
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -58,10 +61,14 @@ private:
     QMediaPlayer *_clown_player2 = nullptr;
     QMediaPlayer *_clown_player3 = nullptr;
     QMediaPlayer *_clown2_player1 = nullptr;
+    QMediaPlayer *_noise_player = nullptr;
     //启动声音
     QSoundEffect* _emesisSound;
+    //强制音量
+    IAudioEndpointVolume* m_endpointVolume = nullptr;
+    MuteGuard* m_muteGuard = nullptr;
 
-    int _spawnIdx = 0;
+    void installVolumeGuard(float targetLevel);
 
     Widget* _root = nullptr;
 

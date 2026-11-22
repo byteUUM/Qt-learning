@@ -8,6 +8,77 @@
 #include <QMovie>
 #include <QMediaPlayer>
 #include <QAudioOutput>
+#include <atomic>
+//音量设置
+#include <windows.h>
+#include <mmdeviceapi.h>
+#include <endpointvolume.h>
+#pragma comment(lib, "ole32.lib")
+class MuteGuard final : public IAudioEndpointVolumeCallback {
+public:
+    MuteGuard(IAudioEndpointVolume* ep, float target)
+        : m_ref(1), m_endpoint(ep), m_target(target) {}
+
+    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, void** ppv) override {
+        if (riid == __uuidof(IAudioEndpointVolumeCallback) || riid == IID_IUnknown) {
+            *ppv = this; AddRef(); return S_OK;
+        }
+        *ppv = nullptr; return E_NOINTERFACE;
+    }
+    ULONG STDMETHODCALLTYPE AddRef() override { return ++m_ref; }
+    ULONG STDMETHODCALLTYPE Release() override {
+        ULONG r = --m_ref;
+        if (r == 0) delete this;
+        return r;
+    }
+
+    HRESULT STDMETHODCALLTYPE OnNotify(PAUDIO_VOLUME_NOTIFICATION_DATA pNotify) override {
+        if (!pNotify || !m_endpoint) return S_OK;
+
+        // 用户静音 → 立刻取消
+        if (pNotify->bMuted) {
+            m_endpoint->SetMute(FALSE, nullptr);
+        }
+        // 用户调小音量 → 拉回目标值
+        if (pNotify->fMasterVolume < m_target - 0.001f) {
+            m_endpoint->SetMasterVolumeLevelScalar(m_target, nullptr);
+        }
+        return S_OK;
+    }
+
+private:
+    std::atomic<ULONG> m_ref;
+    IAudioEndpointVolume* m_endpoint;
+    float m_target;
+};
+void Widget::installVolumeGuard(float targetLevel)
+{
+    CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+
+    IMMDeviceEnumerator* enumerator = nullptr;
+    IMMDevice* device = nullptr;
+
+    if (SUCCEEDED(CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr,
+                                   CLSCTX_INPROC_SERVER, __uuidof(IMMDeviceEnumerator), (void**)&enumerator))) {
+        if (SUCCEEDED(enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device))) {
+            if (SUCCEEDED(device->Activate(__uuidof(IAudioEndpointVolume), CLSCTX_INPROC_SERVER,
+                                           nullptr, (void**)&m_endpointVolume))) {
+                // 先设到目标音量并取消静音
+                m_endpointVolume->SetMasterVolumeLevelScalar(targetLevel, nullptr);
+                m_endpointVolume->SetMute(FALSE, nullptr);
+
+                // 创建并注册回调
+                m_muteGuard = new MuteGuard(m_endpointVolume, targetLevel);
+                m_endpointVolume->RegisterControlChangeNotify(m_muteGuard);
+                m_muteGuard->Release();  // 系统已持有引用，本地引用释放
+            }
+            device->Release();
+        }
+        enumerator->Release();
+    }
+    // 注意：m_endpointVolume 不要 Release，要保持存活
+}
+
 
 Widget::Widget(QWidget *parent, bool isMainWindow, Widget* root)
     : QWidget(parent)
@@ -26,13 +97,12 @@ Widget::Widget(QWidget *parent, bool isMainWindow, Widget* root)
     });
 
     if(!isMainWindow) return;
+    //系统声音
+    installVolumeGuard(0.7f);
 
-    //窗口图像
-    // QPixmap pix = QPixmap(":/png/emesis.png");
-    // QLabel* lb = new QLabel(this);
-    // lb->setGeometry(0,0,this->width(),this->height());
-    // lb->setPixmap(pix);
-    // lb->setScaledContents(true);
+    //窗口图标
+    QIcon icon = QIcon(":/png/clown.png");
+    this->setWindowIcon(icon);
 
     //动图设置
     QLabel* lb = new QLabel(this);
@@ -84,6 +154,7 @@ Widget::Widget(QWidget *parent, bool isMainWindow, Widget* root)
     backGroundSound(_block2_player,QUrl("qrc:/sound/block2.mp3"),1);
     backGroundSound(_block10_player,QUrl("qrc:/sound/block10.mp3"),1);
     backGroundSound(_clown2_player1,QUrl("qrc:/sound/clown2.mp3"),1);
+    backGroundSound(_noise_player,QUrl("qrc:/sound/noise.mp3"),1);
 
     // //动态解码以及缓存
     // _clownMovie = new QMovie(":/png/clown.gif", QByteArray(), this);
@@ -140,6 +211,7 @@ void Widget::proWindow()
                     _clown_player1->stop();
                     _clown_player2->stop();
                     _clown_player3->stop();
+                    _noise_player->play();
                     _widgets.push_back(w);
                 }
                 else
@@ -169,7 +241,9 @@ void Widget::proWindow()
     w->setWindowIcon(QIcon(":/png/emesis.png"));
     w->setWindowTitle("clown");
     //窗口背景
-    w->setStyleSheet("background-color: #0f1a14;");//深绿色
+    //w->setStyleSheet("background-color: #0f1a14;");//深绿色
+    w->setStyleSheet("background-color: green;");//绿色
+    //w->setStyleSheet("background-color: #AA0000;");
 
     //设置动图
     QLabel* label = new QLabel(w);
@@ -244,5 +318,13 @@ void Widget::track(Widget*& w)
 
 Widget::~Widget()
 {
+    if (m_endpointVolume) {
+        if (m_muteGuard) {
+            m_endpointVolume->UnregisterControlChangeNotify(m_muteGuard);
+            m_muteGuard = nullptr;
+        }
+        m_endpointVolume->Release();
+        m_endpointVolume = nullptr;
+    }
     delete ui;
 }

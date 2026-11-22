@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>png/emesis2.gif</file>
+    </qresource>
+</RCC>

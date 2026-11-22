@@ -8,7 +8,6 @@ Widget::Widget(QWidget *parent)
 {
     ui->setupUi(this);
 }
-
 Widget::~Widget()
 {
     delete ui;
@@ -19,7 +18,6 @@ void Widget::on_pushButton_clicked()
     qDebug()<<"槽函数被执行";
 }
 
-
 void Widget::on_pushButton_2_clicked()
 {
     if(ui->pushButton->isEnabled())
@@ -27,4 +25,8 @@ void Widget::on_pushButton_2_clicked()
     else
         ui->pushButton->setEnabled(true);
 }
+
+
+
+
 

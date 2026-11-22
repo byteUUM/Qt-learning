@@ -21,7 +21,6 @@ void Widget::on_pushButton_clicked()
     ui->pushButton_2->setStyleSheet("color:black;");
 }
 
-
 void Widget::on_pushButton_2_clicked()
 {
     this->setStyleSheet("background-color: black;");
