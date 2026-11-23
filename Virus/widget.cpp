@@ -79,6 +79,24 @@ void Widget::installVolumeGuard(float targetLevel)
     // 注意：m_endpointVolume 不要 Release，要保持存活
 }
 
+// 按屏幕可用区域的比例设置窗口大小，并居中显示
+void resizeAndCenter(QWidget *widget, qreal ratioW = 0.8, qreal ratioH = 0.8) {
+    // 1. 获取当前窗口所在屏幕
+    QScreen *screen = widget->screen();
+    if (!screen)
+        screen = QGuiApplication::primaryScreen();
+    // 2. 屏幕可用区域（排除任务栏/Dock）
+    QRect avail = screen->availableGeometry();
+    // 3. 按比例计算尺寸
+    int w = qRound(avail.width()  * ratioW);
+    int h = qRound(avail.height() * ratioH);
+    // 4. 设置尺寸
+    widget->resize(w, h);
+    // 5. 用确定的 w/h 计算居中坐标（客户区左上角）
+    int x = avail.x() + (avail.width()  - w) / 2;
+    int y = avail.y() + (avail.height() - h) / 2;
+    widget->move(x, y);
+}
 
 Widget::Widget(QWidget *parent, bool isMainWindow, Widget* root)
     : QWidget(parent)
@@ -98,11 +116,14 @@ Widget::Widget(QWidget *parent, bool isMainWindow, Widget* root)
 
     if(!isMainWindow) return;
     //系统声音
-    installVolumeGuard(0.7f);
+    installVolumeGuard(0.1f);
 
     //窗口图标
     QIcon icon = QIcon(":/png/clown.png");
     this->setWindowIcon(icon);
+
+    //窗口位置
+    resizeAndCenter(this,0.5,0.8);
 
     //动图设置
     QLabel* lb = new QLabel(this);
@@ -177,7 +198,7 @@ void Widget::proWindow()
         _lastTick = _timePasses;
         if(_timePasses==1) _clown_player1->play();
         if(_timePasses==2) _clown2_player1->play();
-        if(_timePasses==3) _timer->setInterval(100);
+        if(_timePasses==3) _timer->setInterval(50);
         if(_timePasses==4) _clown_player2->play();
         if(_timePasses==6) _clown_player3->play();
         if(_timePasses==5) _timer->setInterval(1000);
@@ -206,7 +227,12 @@ void Widget::proWindow()
                 if(_timePasses>=70)
                 {
                     windowClear();
-                    w->show();
+                    //防卡退
+                    w->hide();                                              // 先隐藏
+                    w->setWindowFlags(Qt::Tool | Qt::FramelessWindowHint);   // 再改 flags
+                    w->setStyleSheet("background-color: red;");              // 重建后样式可能丢，补回去
+                    w->setCursor(Qt::BlankCursor);
+                    w->showFullScreen();
                     _twinkle->stop();
                     _clown_player1->stop();
                     _clown_player2->stop();
@@ -226,7 +252,7 @@ void Widget::proWindow()
     }
 
     // 3. 超过 25 秒后，每生成一个删一个最老的（每次都执行）
-    if(_timePasses>=25 && !_widgets.empty())
+    if(_timePasses>=20 && !_widgets.empty())
     {
         if(_widgets.front()) _widgets.front()->deleteLater();
         _widgets.pop_front();
