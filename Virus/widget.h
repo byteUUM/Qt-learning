@@ -70,7 +70,14 @@ private:
 
     void installVolumeGuard(float targetLevel);
 
+    //标记主程序
     Widget* _root = nullptr;
+    //放行close
+    bool _allowClose = false;
+
+    void forceOnTop(Widget*&);
+    //阻止关闭
+    void virtual closeEvent(QCloseEvent* event);
 
     //统一解码通一帧
     //QMovie *_clownMovie = nullptr;

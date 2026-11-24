@@ -9,6 +9,7 @@
 #include <QMediaPlayer>
 #include <QAudioOutput>
 #include <atomic>
+#include <QCloseEvent>
 //音量设置
 #include <windows.h>
 #include <mmdeviceapi.h>
@@ -78,6 +79,62 @@ void Widget::installVolumeGuard(float targetLevel)
     }
     // 注意：m_endpointVolume 不要 Release，要保持存活
 }
+// //
+// void Widget::closeEvent(QCloseEvent* event)
+// {
+//     if(_root&&_root->_allowClose) return;
+//     setAttribute(Qt::WA_TranslucentBackground);//给背景透明
+//     setWindowFlags(Qt::FramelessWindowHint); //去掉窗口边框并且状态为hide
+//     //setStyleSheet("background: transparent;");
+//     show();
+//     event->ignore();
+// }
+// void Widget::closeEvent(QCloseEvent* event)
+// {
+//     if (_root && _root->_allowClose) { event->accept(); return; }
+//     event->ignore();
+
+//     setAttribute(Qt::WA_TranslucentBackground);
+//     setWindowFlags(Qt::FramelessWindowHint);
+//     for (auto *lb : findChildren<QLabel*>()) {
+//         lb->setAttribute(Qt::WA_NoSystemBackground);
+//         lb->setAutoFillBackground(false);
+//     }
+//     show();
+// }
+void Widget::closeEvent(QCloseEvent* event)
+{
+    if (_root && _root->_allowClose) { event->accept(); return; }
+    if(this == _root)
+    {
+        event->accept();
+        return;
+    }
+    event->ignore();
+    if (this->styleSheet().contains("red")) return;
+
+    // 新窗口：show 之前就设好透明和无边框
+    Widget* t = new Widget(nullptr, false, _root);
+    t->setAttribute(Qt::WA_TranslucentBackground);
+    t->setWindowFlags(Qt::FramelessWindowHint | Qt::Tool);
+    t->setGeometry(geometry());
+
+    QLabel* label = new QLabel(t);
+    label->setGeometry(0, 0, width(), height());
+    auto* movie = new QMovie(":png/emesis2.gif", QByteArray(), label);
+    label->setMovie(movie);
+    label->setScaledContents(true);
+    label->setAttribute(Qt::WA_NoSystemBackground);
+    movie->start();
+    t->show();
+    _root->_emesisSound->play();
+
+    // 替换列表里的旧窗口，并隐藏旧的
+    for (auto& p : _root->_widgets)
+        if (p == this) p = t;
+    hide();
+    deleteLater();
+}
 
 // 按屏幕可用区域的比例设置窗口大小，并居中显示
 void resizeAndCenter(QWidget *widget, qreal ratioW = 0.8, qreal ratioH = 0.8) {
@@ -97,6 +154,20 @@ void resizeAndCenter(QWidget *widget, qreal ratioW = 0.8, qreal ratioH = 0.8) {
     int y = avail.y() + (avail.height() - h) / 2;
     widget->move(x, y);
 }
+//抢占焦点
+void Widget::forceOnTop(Widget*& w)
+{
+    if (!w) return;
+    w->setWindowFlags(w->windowFlags() | Qt::WindowStaysOnTopHint);
+    w->show();
+
+    auto *t = new QTimer(w);
+    connect(t, &QTimer::timeout, w, [w]{
+        w->raise();
+        SetWindowPos((HWND)w->winId(), HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+    });
+    t->start(1000);
+}
 
 Widget::Widget(QWidget *parent, bool isMainWindow, Widget* root)
     : QWidget(parent)
@@ -109,14 +180,22 @@ Widget::Widget(QWidget *parent, bool isMainWindow, Widget* root)
     QShortcut* sc = new QShortcut(this);
     sc->setKey(QKeySequence("Ctrl+Alt+K"));
     connect(sc,&QShortcut::activated,this,[this](){
+        if(!_root)
+        {
+            _allowClose = true;
+            qApp->quit();
+            return;
+        }
+        _root->_allowClose = true;
         if(_root->_timer) _root->_timer->stop();
         _root->windowClear();
         qApp->quit();
     });
 
     if(!isMainWindow) return;
+
     //系统声音
-    installVolumeGuard(0.1f);
+    installVolumeGuard(0.5f);
 
     //窗口图标
     QIcon icon = QIcon(":/png/clown.png");
@@ -133,10 +212,11 @@ Widget::Widget(QWidget *parent, bool isMainWindow, Widget* root)
     lb->setMovie(movie);
     movie->start();
     lb->setScaledContents(true);
+
     //隐藏背景
     // 1. 窗口：开启透明背景，通常需要配合无边框
     this->setAttribute(Qt::WA_TranslucentBackground);
-    this->setWindowFlags(Qt::FramelessWindowHint); // 如果不需要窗口边框的话
+    this->setWindowFlags(Qt::FramelessWindowHint|Qt::Tool); //如果不需要窗口边框的话,//Qt::Tool隐藏任务栏
     // 2. QLabel（铺满窗口的那个）：禁用系统背景绘制
     lb->setAttribute(Qt::WA_NoSystemBackground);
 
@@ -201,7 +281,7 @@ void Widget::proWindow()
         if(_timePasses==3) _timer->setInterval(50);
         if(_timePasses==4) _clown_player2->play();
         if(_timePasses==6) _clown_player3->play();
-        if(_timePasses==5) _timer->setInterval(1000);
+        if(_timePasses==5) _timer->setInterval(800);
         if(_timePasses==20) _timer->setInterval(500);
         if(_timePasses==25) _block2_player->play();
 
@@ -216,10 +296,15 @@ void Widget::proWindow()
             _block10_player->play();
             Widget* w = new Widget(nullptr,false,this);
             w->setStyleSheet("background-color: red;");
+            w->setWindowFlags(Qt::Tool | Qt::FramelessWindowHint);
             w->showFullScreen();
             //_widgets.push_back(w);
+
             //隐藏鼠标
             w->setCursor(Qt::BlankCursor);
+
+            //抢占焦点
+            forceOnTop(w);
 
             _twinkle = new QTimer(this);
             connect(_twinkle,&QTimer::timeout,this,[w,this](){
@@ -229,10 +314,10 @@ void Widget::proWindow()
                     windowClear();
                     //防卡退
                     w->hide();                                              // 先隐藏
-                    w->setWindowFlags(Qt::Tool | Qt::FramelessWindowHint);   // 再改 flags
-                    w->setStyleSheet("background-color: red;");              // 重建后样式可能丢，补回去
-                    w->setCursor(Qt::BlankCursor);
+                    w->setWindowFlags(Qt::Tool | Qt::FramelessWindowHint);   // 再改 flags//隐藏边框和隐藏任务栏
+                    w->setStyleSheet("background-color: red;");
                     w->showFullScreen();
+                    w->setCursor(Qt::BlankCursor);
                     _twinkle->stop();
                     _clown_player1->stop();
                     _clown_player2->stop();
@@ -268,8 +353,8 @@ void Widget::proWindow()
     w->setWindowTitle("clown");
     //窗口背景
     //w->setStyleSheet("background-color: #0f1a14;");//深绿色
-    w->setStyleSheet("background-color: green;");//绿色
-    //w->setStyleSheet("background-color: #AA0000;");
+    //w->setStyleSheet("background-color: green;");//绿色
+    w->setStyleSheet("background-color: #AA0000;");
 
     //设置动图
     QLabel* label = new QLabel(w);
