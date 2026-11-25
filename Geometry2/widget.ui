@@ -104,7 +104,7 @@
     <string>conwy</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_mark">
+  <widget class="myPushButton" name="pushButton_mark">
    <property name="geometry">
     <rect>
      <x>370</x>
@@ -118,6 +118,13 @@
    </property>
   </widget>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>myPushButton</class>
+   <extends>QPushButton</extends>
+   <header location="global">mypushbutton.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

@@ -1,15 +1,18 @@
 #include "widget.h"
 #include "ui_widget.h"
-
 Widget::Widget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::Widget)
 {
     ui->setupUi(this);
-    ui->pushButton_conwy->hide();
-    ui->pushButton_mark->hide();
-    ui->pushButton_ask->hide();
+    // ui->pushButton_conwy->hide();
+    // ui->pushButton_mark->hide();
+    // ui->pushButton_ask->hide();
     srand(time(NULL));
+    connect(ui->pushButton_mark,&myPushButton::entered,this,[=](){
+        ui->pushButton_mark->move(rand()%(this->width()-ui->pushButton_mark->width())
+                                  ,rand()%(this->height()-ui->pushButton_mark->height()));
+    });
 }
 
 Widget::~Widget()
@@ -87,16 +90,18 @@ void Widget::on_pushButton_conwy_clicked()
     ui->pushButton_mark->setEnabled(false);
 }
 
-void Widget::on_pushButton_mark_clicked()
-{
-    ui->pushButton_mark->move(rand()%(this->width()-ui->pushButton_mark->width())
-                              ,rand()%(this->height()-ui->pushButton_mark->height()));
-}
+// void Widget::on_pushButton_mark_clicked()
+// {
+//     ui->pushButton_mark->move(rand()%(this->width()-ui->pushButton_mark->width())
+//                               ,rand()%(this->height()-ui->pushButton_mark->height()));
+// }
 
 
-void Widget::on_pushButton_mark_pressed()
-{
-    ui->pushButton_mark->move(rand()%(this->width()-ui->pushButton_mark->width())
-                              ,rand()%(this->height()-ui->pushButton_mark->height()));
-}
+// void Widget::on_pushButton_mark_pressed()
+// {
+//     ui->pushButton_mark->move(rand()%(this->width()-ui->pushButton_mark->width())
+//                               ,rand()%(this->height()-ui->pushButton_mark->height()));
+// }
+
+
 

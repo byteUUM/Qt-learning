@@ -28,10 +28,9 @@ private slots:
 
     void on_pushButton_conwy_clicked();
 
+    // void on_pushButton_mark_clicked();
 
-    void on_pushButton_mark_clicked();
-
-    void on_pushButton_mark_pressed();
+    // void on_pushButton_mark_pressed();
 
 private:
     Ui::Widget *ui;
