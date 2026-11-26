@@ -20,7 +20,6 @@ void Widget::on_pushButton_clicked()
     ui->treeWidget->addTopLevelItem(item);
 }
 
-
 void Widget::on_pushButton_2_clicked()
 {
     QTreeWidgetItem* item = new QTreeWidgetItem();
@@ -28,7 +27,6 @@ void Widget::on_pushButton_2_clicked()
     auto itemParent = ui->treeWidget->currentItem();
     itemParent->addChild(item);
 }
-
 
 void Widget::on_pushButton_3_clicked()
 {
