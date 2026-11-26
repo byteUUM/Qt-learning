@@ -25,7 +25,7 @@ void Widget::on_pushButton_clicked()
     lb->setText("标签页： "+QString::number(count));
     lb->resize(100,50);
 
-    //设置当前选中标签页
+    //设置当前选i中标签页
     ui->tabWidget->setCurrentIndex(count-1);
 }
 
